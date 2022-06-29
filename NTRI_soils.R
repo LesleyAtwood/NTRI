@@ -182,7 +182,7 @@ s4_big <- power.t.test(n = NULL, delta = ((avg[4]+biggain)-avg[4]),
                        sig.level = 0.05,
                        power = 0.80,
                        type = "one.sample")$n
-n_biggains <- c(s1_big, s2_big, s3_big, s4_big)
+numsamples_0.35t_ha_yr <- c(s1_big, s2_big, s3_big, s4_big)
 
 
 ###################small gain
@@ -208,10 +208,10 @@ s4_small <- power.t.test(n = NULL, delta = ((avg[4]+smallgain)-avg[4]),
                        sig.level = 0.05,
                        power = 0.80,
                        type = "one.sample")$n
-n_smallgains <- c(s1_small, s2_small, s3_small, s4_small)
+numsamples_0.213t_ha_yr <- c(s1_small, s2_small, s3_small, s4_small)
 
-sum(n_biggains)
-sum(n_smallgains)
+sum(numsamples_0.35t_ha_yr)
+sum(numsamples_0.213t_ha_yr)
 
 ###Results Table####
 
@@ -222,15 +222,15 @@ stratasoc_sd_tC_ha <- sd
 
 stratasize_km2 <- c(strata1area,strata2area,strata3area,strata4area)
 totalsize_km2 <- c(totalarea, totalarea, totalarea, totalarea)
-strataproportion <- stratasize/totalsize
+strataproportion <- stratasize_km2/totalsize_km2
 
 
 
 results.df <- (data.frame(stratanumber,stratasoc_mean_tC_ha,
                          stratasoc_sd_tC_ha,stratasize_km2, 
                          totalsize_km2, strataproportion, 
-                         n_biggains, n_smallgains))
+                         numsamples_0.35t_ha_yr, numsamples_0.213t_ha_yr))
 
-write.csv(results.df, "NTRI_strata_results.csv")
+write.csv(results.df, "NTRI_strata_results.csv", row.names = FALSE)
 
 
