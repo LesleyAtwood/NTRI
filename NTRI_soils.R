@@ -216,19 +216,19 @@ sum(n_smallgains)
 ###Results Table####
 
 stratanumber <- c("1", "2", "3","4")
-stratasoc_mean <- avg
-stratasoc_sd <- sd
+stratasoc_mean_tC_ha <- avg
+stratasoc_sd_tC_ha <- sd
 
 
-stratasize <- c(strata1area,strata2area,strata3area,strata4area)
-totalsize <- c(totalarea, totalarea, totalarea, totalarea)
+stratasize_km2 <- c(strata1area,strata2area,strata3area,strata4area)
+totalsize_km2 <- c(totalarea, totalarea, totalarea, totalarea)
 strataproportion <- stratasize/totalsize
 
 
 
-results.df <- t(data.frame(stratanumber,stratasoc_mean,
-                         stratasoc_sd,stratasize, 
-                         totalsize, strataproportion, 
+results.df <- (data.frame(stratanumber,stratasoc_mean_tC_ha,
+                         stratasoc_sd_tC_ha,stratasize_km2, 
+                         totalsize_km2, strataproportion, 
                          n_biggains, n_smallgains))
 
 write.csv(results.df, "NTRI_strata_results.csv")
