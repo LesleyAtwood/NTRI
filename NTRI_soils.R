@@ -20,6 +20,7 @@ library(stars)
 library(ggplot2)
 library(stats)
 library(dplyr)
+library(foster)
 
 
 # import raster data (clipped using QGIS)
@@ -148,6 +149,8 @@ std <- soc_clusters %>%
           group_by(clusters) %>%
           summarise(stdev = sd(socvalue))
 
+
+
 #means and stdevs for each soil strata (ided through kmeans cluster analysis)
 
 avg <- means$avg
@@ -214,23 +217,76 @@ sum(numsamples_0.35t_ha_yr)
 sum(numsamples_0.213t_ha_yr)
 
 ###Results Table####
+results.df <- matrix(NA, 4,8)
+results.df[,1] <- 1:4
+results.df[,2] <- avg
+results.df[,3] <- sd
+results.df[,4] <- c(strata1area,strata2area,strata3area,strata4area)
+results.df[,5] <- totalarea
+results.df[,6] <- results.df[,4]/results.df[,5] 
+results.df[,7] <- numsamples_0.35t_ha_yr
+results.df[,8] <- numsamples_0.213t_ha_yr
+results.df <- data.frame(results.df)
 
-stratanumber <- c("1", "2", "3","4")
-stratasoc_mean_tC_ha <- avg
-stratasoc_sd_tC_ha <- sd
+#rename columns########begin here. then recalculate n using CDM equation
 
 
-stratasize_km2 <- c(strata1area,strata2area,strata3area,strata4area)
-totalsize_km2 <- c(totalarea, totalarea, totalarea, totalarea)
-strataproportion <- stratasize_km2/totalsize_km2
-
-
-
-results.df <- (data.frame(stratanumber,stratasoc_mean_tC_ha,
-                         stratasoc_sd_tC_ha,stratasize_km2, 
-                         totalsize_km2, strataproportion, 
-                         numsamples_0.35t_ha_yr, numsamples_0.213t_ha_yr))
+results.df <- results.df %>%
+                rename( strata = X1,
+                        mean_SOC.tC.ha = X2,
+                        sd_SOC.tC.ha = X3,
+                        area_km2 = X4,
+                        area_total_km2 = X5,
+                        area_proportion = X6,
+                        n.power_0.35tC.ha.yr = X7,
+                        n.power_0.213tC.ha.yr = X8)
 
 write.csv(results.df, "NTRI_strata_results.csv", row.names = FALSE)
+results.df <- read.csv("NTRI_strata_results.csv")
 
+###use kmeans cluster results
+#results.df <- read.csv("NTRI_strata_results.csv")
+
+SamplesKm <- results.df %>% select(sd_SOC.tC.ha, mean_SOC.tC.ha, area_proportion)
+
+
+#calculating total number of sample plots required using equation 2 from CDM A/R tool for calculation of the number of sample plots for measurements 
+#within A/R CDM project activities (Version 02.1.0)
+#equation assumes that sample plot area is much smaller <5% of total project area)
+
+#t value at 95% confidence interval (t) and a  
+t = 1.960
+
+mean.total <- mean(soc_clusters$socvalue, na.rm = TRUE)
+n.total <- length(soc_clusters$socvalue[!is.na(soc_clusters$socvalue)])
+sd <- sd(soc_clusters$socvalue[!is.na(soc_clusters$socvalue)])
+
+se <- function(x) {sqrt(var(x[!is.na(x)])/length(x[!is.na(x)]))}
+
+se(soc_clusters$socvalue)
+
+SamplesKm$sd_SOC.tC.ha <- SamplesKm$sd_SOC.tC.ha*100
+SamplesKm$mean_SOC.tC.ha <- SamplesKm$mean_SOC.tC.ha*100
+
+#margin of error(p)
+E = mean.total + (t*(sd/sqrt(n.total)))
+
+####Estimation of Sample Plots using CDM equations#######
+
+##CDM Eq. II - CALCULATION OF NUMBER OF SAMPLE PLOTS REQUIRED FOR ESTIMATION OF C STOCK WITHIN THE PROJECT BOUNDARY
+#equation results in value < 1, use simplified equation below for projects with small sampling fraction (<5% project area)
+
+n = (t^2* sum(SamplesKm[,3]*SamplesKm[,1])^2) / 
+ (E^2 + t^2 * sum(SamplesKm[,3]*SamplesKm[,1]^2))
+#<1 results, use simplified equation
+
+
+#simplified equation, small sampling fraction (<5% of project area)
+  n = (t/E)^2*(sum(SamplesKm[,3]*SamplesKm[,1]))^2
+  #139 total samples
+
+
+results.df$n.CDM <- n*((SamplesKm$area_proportion*SamplesKm$sd_SOC.tC.ha)/(sum(SamplesKm$area_proportion*SamplesKm$sd_SOC.tC.ha)))
+ 
+write.csv(results.df, "NTRI_strata_results.csv", row.names = FALSE)
 
