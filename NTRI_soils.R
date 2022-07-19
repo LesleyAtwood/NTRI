@@ -258,18 +258,18 @@ SamplesKm <- results.df %>% select(sd_SOC.tC.ha, mean_SOC.tC.ha, area_proportion
 t = 1.960
 
 mean.total <- mean(soc_clusters$socvalue, na.rm = TRUE)
-n.total <- length(soc_clusters$socvalue[!is.na(soc_clusters$socvalue)])
 sd <- sd(soc_clusters$socvalue[!is.na(soc_clusters$socvalue)])
 
 se <- function(x) {sqrt(var(x[!is.na(x)])/length(x[!is.na(x)]))}
-
+n.total <- length(soc_clusters$socvalue[!is.na(soc_clusters$socvalue)])
 se(soc_clusters$socvalue)
 
 SamplesKm$sd_SOC.tC.ha <- SamplesKm$sd_SOC.tC.ha*100
 SamplesKm$mean_SOC.tC.ha <- SamplesKm$mean_SOC.tC.ha*100
 
 #margin of error(p)
-E = mean.total + (t*(sd/sqrt(n.total)))
+E = mean.total + (t*(2*sd/sqrt(n.total)))
+E = 0.35*mean.total
 
 ####Estimation of Sample Plots using CDM equations#######
 
