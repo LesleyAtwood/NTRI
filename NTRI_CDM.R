@@ -43,6 +43,10 @@ hist(r)
 ####Calculate CI for entire area (r) using quantiles
 soc_total <- quantile(r, probs=seq(0,1,1/10), na.rm=TRUE)
 ###issue with quantile results and how they integrate into sample stratified, see size = .1 below
+#randomly sample within each quantile?
+
+#randomly sample within each strata
+
 
 #need stratified map to run CDM calculations
 totalarea <- cellStats(area(clusters, units= "km", na.rm=TRUE), 'sum')
@@ -59,13 +63,20 @@ strata1area <- clusters %>%
 clusters_s1 <- clusters
 clusters_s1[clusters_s1 > 1] <- NA
 clusters1<- mask(r, clusters_s1)
+clusters1.df <- data.frame(clust)
 hist(clusters1)
 #bimodal
 
+cluster1.sample <- sampleRandom(clusters1, 47 )
+plot(clusters1)
+
+
+#randomly sample within each strata area use set number -> use #'s from power analysis
+#use those values to calculate below
+?sample
 #subsamples
-soc_s1 <- quantile(clusters1, probs=seq(0,1,1/10), na.rm=TRUE)
-mean_s1 <- mean(soc_s1)
-sd_s1 <- sd(soc_s1)
+mean_s1 <- mean(cluster1.sample)
+sd_s1 <- sd(cluster1.sample)
 
 
 #strata 2 ####
@@ -81,11 +92,11 @@ clusters_s2[clusters_s2 != 2] <- NA
 clusters2<- mask(r, clusters_s2)
 hist(clusters2)
 #skew right
+cluster2.sample <- sampleRandom(clusters2, 30 )
 
 #subsamples
-soc_s2 <- quantile(clusters2, probs=seq(0,1,1/10), na.rm=TRUE)
-mean_s2 <- mean(soc_s2)
-sd_s2 <- sd(soc_s2)
+mean_s2 <- mean(cluster2.sample)
+sd_s2 <- sd(cluster2.sample)
 
 
 #strata 3 ####
@@ -101,11 +112,13 @@ clusters_s3[clusters_s3 != 3] <- NA
 clusters3<- mask(r, clusters_s3)
 hist(clusters3)
 #bimodal
+summary(clusters3)
+cluster3.sample <- sampleRandom(clusters3, 12 )
+plot(clusters3)
 
 #subsamples
-soc_s3 <- quantile(clusters3, probs=seq(0,1,1/10), na.rm=TRUE)
-mean_s3 <- mean(soc_s3)
-sd_s3 <- sd(soc_s3)
+mean_s3 <- mean(cluster3.sample)
+sd_s3 <- sd(cluster3.sample)
 
 #strata 4 ####
 #area
@@ -121,10 +134,11 @@ clusters4<- mask(r, clusters_s4)
 hist(clusters4)
 #skew left
 
+cluster4.sample <- sampleRandom(clusters4, 168 )
+
 #subsamples
-soc_s4 <- quantile(clusters4, probs=seq(0,1,1/10), na.rm=TRUE)
-mean_s4 <- mean(soc_s4)
-sd_s4 <- sd(soc_s4)
+mean_s4 <- mean(cluster4.sample)
+sd_s4 <- sd(cluster4.sample)
 
 
 #create variables for CDM calculation#####
@@ -133,7 +147,9 @@ means <- c(mean_s1, mean_s2, mean_s3, mean_s4)
 sds <- c(sd_s1, sd_s2, sd_s3, sd_s4)      
 areas <- c(strata1area, strata2area, strata3area, strata4area)
 area.prop <- areas/totalarea
-data <- c(unname(soc_s1), unname(soc_s2), unname(soc_s3), unname(soc_s4))
+data <- c(cluster1.sample, cluster2.sample, cluster3.sample, cluster4.sample)
+
+plot(r)
 
 
 
@@ -144,18 +160,25 @@ data <- c(unname(soc_s1), unname(soc_s2), unname(soc_s3), unname(soc_s4))
 ##CDM Eq. II - CALCULATION OF NUMBER OF SAMPLE PLOTS REQUIRED FOR ESTIMATION OF C STOCK WITHIN THE PROJECT BOUNDARY
 #equation results in value < 1, use simplified equation below for projects with small sampling fraction (<5% project area)
 #t value at 95% confidence interval (t) and a  
-t = 1.960
+t = 1.960 #z score 95% confidence level
+
+#second iteration, where t-val = n-1 degrees of freedom
+#t = 3.182
 
 sd_total <- sd(data)
 n.total <- length(data)
 
+sd.raster <- cellStats(r, sd)
+mean.raster <- cellStats(r, mean)
+
+
 #margin of error(p)
 E = (t*(sd_total/sqrt(n.total)))
-
+E
 
 #equation II
 n = (t^2* sum(area.prop*sds)^2) / 
-  (E^2 + t^2 * sum(area.prop*sds^2))
+  (E^2 + t^2 * sum(area.prop*sds^2*3))
 n
 #<1 results, use simplified equation
 
