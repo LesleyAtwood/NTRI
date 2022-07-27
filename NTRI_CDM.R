@@ -41,7 +41,7 @@ hist(r)
 
 
 ####Calculate CI for entire area (r) using quantiles
-soc_total <- quantile(r, probs=seq(0,1,1/10), na.rm=TRUE)
+#soc_total <- quantile(r, probs=seq(0,1,1/10), na.rm=TRUE)
 ###issue with quantile results and how they integrate into sample stratified, see size = .1 below
 #randomly sample within each quantile?
 
